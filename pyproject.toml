@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comp9414-pkm-bot"
+version = "0.1.0"
+description = "Telegram PKM bot MVP for UNSW COMP9414 revision"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "openai>=1.54.0",
+  "python-telegram-bot>=22.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+]
+
+[project.scripts]
+comp9414-pkm-bot = "comp9414_pkm_bot.main:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
