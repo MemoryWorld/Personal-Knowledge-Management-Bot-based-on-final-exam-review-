@@ -1,39 +1,77 @@
-# COMP9414 PKM Bot
+# COMP9414 Revision Bot
 
-A Telegram bot MVP for revising `UNSW COMP9414` with image-first question intake.
+Telegram bot for turning `UNSW COMP9414` exam screenshots into structured revision notes.
 
-You send:
-- a question screenshot or PNG
-- your own solution text
+You send a PNG plus your own solution text. The bot extracts the question, classifies the topic, and writes a polished Markdown article into a Git-backed knowledge base.
 
-The bot:
-- extracts the question from the image
-- classifies the topic
-- keeps an active draft per chat
-- generates a structured Markdown article
-- saves it into a local Git-backed knowledge base
+## Why this project matters
 
-## Features
+- Real multi-modal intake: screenshots today, voice and links as planned extensions
+- Agent-style orchestration: extract, classify, synthesize, then persist
+- Production habits: SQLite session state, idempotent updates, queueing, retries, rate limiting
+- Git as a knowledge base: every note becomes a versioned Markdown file
 
-- Telegram bot flow with `/status`, `/save`, `/discard`, `/topic`
-- Multi-step draft workflow for `image + text`
-- SQLite persistence for drafts and processed Telegram updates
-- Async worker queue so Telegram handlers stay thin
-- OpenAI vision + text pipeline
-- Knowledge base writer with Git commits
-- Basic per-chat rate limiting
-- Voice and link handlers kept as extension points
+## Demo Flow
 
-## Project Layout
+1. Send a question screenshot.
+2. Add your own solution in follow-up text messages.
+3. Optionally override the topic with `/topic search`.
+4. Run `/status` to inspect the active draft.
+5. Run `/save` to generate the final article.
 
-- `src/comp9414_pkm_bot/bot.py`: Telegram handlers and app wiring
-- `src/comp9414_pkm_bot/pipeline.py`: queue jobs and orchestration
-- `src/comp9414_pkm_bot/storage.py`: SQLite persistence
-- `src/comp9414_pkm_bot/ai.py`: OpenAI extraction, classification, synthesis
-- `src/comp9414_pkm_bot/kb.py`: Markdown writing and Git commit flow
-- `tests/`: unit tests for storage and knowledge base writing
+## What the bot produces
 
-## Quick Start
+- Question summary
+- Parsed question text
+- Your raw solution
+- Polished solution
+- Key concepts
+- Common mistakes
+- Review prompts
+- Tags and source refs
+
+## Architecture
+
+```text
+Telegram -> queue -> AI extraction/classification -> draft state -> Markdown writer -> Git commit
+```
+
+Core modules:
+
+- `src/comp9414_pkm_bot/bot.py`: Telegram commands and message handlers
+- `src/comp9414_pkm_bot/pipeline.py`: job queue and orchestration
+- `src/comp9414_pkm_bot/ai.py`: OpenAI vision and text calls
+- `src/comp9414_pkm_bot/storage.py`: SQLite persistence for drafts and idempotency
+- `src/comp9414_pkm_bot/kb.py`: Markdown generation and Git commit flow
+
+## Screenshots
+
+Put captured images in `docs/screenshots/` and reference them here.
+
+Recommended screenshots:
+
+1. `01-start-and-status.png`: bot welcome message plus `/status` output with an empty draft
+2. `02-image-ingest.png`: sending a COMP9414 PNG and the extraction acknowledgement
+3. `03-solution-notes.png`: adding your own solution text into the same draft
+4. `04-save-result.png`: `/save` output and the generated Markdown file path
+5. `05-git-history.png`: Git log showing the note commit
+
+Suggested captions:
+
+- "Send a screenshot, then continue the same draft with text."
+- "The bot keeps the current exam question in persistent storage."
+- "Saved notes are written as versioned Markdown articles."
+
+## Tech Stack
+
+- Python
+- `python-telegram-bot`
+- OpenAI API
+- SQLite
+- Git
+- `pytest`
+
+## Local Setup
 
 ```bash
 cd /Users/hongyu_chen/comp9414-pkm-bot
@@ -43,24 +81,13 @@ uv pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-Set the environment variables in `.env`, then run:
+Set `TELEGRAM_BOT_TOKEN` and `OPENAI_API_KEY` in `.env`, then run:
 
 ```bash
-source .env
 comp9414-pkm-bot
 ```
 
-## Telegram Workflow
-
-1. Send a question image.
-2. Send your solution text in one or more follow-up messages.
-3. Optional: run `/topic bayes-nets` to override the AI topic.
-4. Run `/status` to inspect the current draft.
-5. Run `/save` to generate the final article and write it to `knowledge-base/`.
-
-## Knowledge Base Output
-
-Articles are grouped by topic, for example:
+## Knowledge Base Layout
 
 ```text
 knowledge-base/
@@ -70,16 +97,16 @@ knowledge-base/
   mdp/
 ```
 
-Each article contains:
-- parsed question
-- your raw solution
-- polished solution
-- key concepts
-- common mistakes
-- review prompts
+Each topic directory contains one Markdown file per question, named with the date and a slug.
 
-## Current MVP Boundary
+## Scope
 
-- Fully supported: images, text, draft persistence, article generation
-- Skeleton only: voice transcription and link extraction
-- No vector search or web UI yet
+- Fully working: image intake, text follow-up, draft persistence, structured article generation
+- Scaffolded only: voice transcription and link extraction
+- Not included: vector search, web UI, or multi-user permissions
+
+## Safety
+
+- No secrets are committed to the repository
+- `.env` is ignored by Git
+- API tokens stay local to your machine
